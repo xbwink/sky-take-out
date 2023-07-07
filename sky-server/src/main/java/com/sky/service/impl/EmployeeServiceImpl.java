@@ -1,13 +1,14 @@
 package com.sky.service.impl;
 
+import com.sky.annotation.AutoFill;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
-import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
+import com.sky.enumeration.OperationType;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +70,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * 新增员工
      * @param employeeDTO
      */
+    @AutoFill(OperationType.INSERT)
     @Override
     public void addEmployee(EmployeeDTO employeeDTO) {
 
@@ -80,13 +81,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         //2.设置初始值,默认密码：123456
         employee.setPassword(passwordEncoder.encode(PasswordConstant.DEFAULT_PASSWORD));
         employee.setStatus(StatusConstant.ENABLE); //状态默认为启用
-        //设置创建时间和修改时间
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
 
-        // 设置当前记录创建人id和修改人id
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.insert(employee);
     }
 
@@ -119,6 +114,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param status 修改成
      * @param id 被修改的员工
      */
+    @AutoFill(OperationType.UPDATE)
     @Override
     public void editStatus(Integer status, Integer id) {
         //查询员工是否存在
@@ -151,9 +147,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO,employee);
 
-        //设置修改时间和修改人id
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.update(employee);
     }
 
