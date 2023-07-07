@@ -101,11 +101,42 @@ public class EmployeeController {
         return Result.success(map);
     }
 
+    /**
+     * 修改员工状态
+     * @param status
+     * @param id
+     * @return
+     */
     @ApiOperation("修改员工状态")
     @PostMapping("/status/{status}")
     public Result modifyStatus(@PathVariable Integer status,Integer id) {
         log.info("修改员工状态:改为{}改谁{}",status,id);
         employeeService.editStatus(status,id);
+        return Result.success();
+    }
+
+    /**
+     * 根据id查询员工
+     * @param id
+     * @return
+     */
+    @ApiOperation("根据id查询员工")
+    @GetMapping("/{id}")
+    public Result<Employee> getById(@PathVariable Integer id) {
+        log.info("根据id查询员工：{}",id);
+        Employee employee = employeeService.getById(id);
+        return Result.success(employee);
+    }
+
+    /**
+     * 修改员工
+     * @return
+     */
+    @ApiOperation("修改员工")
+    @PutMapping
+    public Result<String> update(@RequestBody EmployeeDTO employeeDTO) {
+        log.info("修改员工：{}", employeeDTO);
+        employeeService.updateEmployee(employeeDTO);
         return Result.success();
     }
 

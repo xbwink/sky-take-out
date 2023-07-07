@@ -35,4 +35,15 @@ public interface EmployeeService {
      * @param id 被修改的员工
      */
     void editStatus(Integer status, Integer id);
+
+    /**
+     * 根据id查询员工
+     */
+    Employee getById(Integer id);
+
+    /**
+     * 修改员工
+     * @param employeeDTO
+     */
+    void updateEmployee(EmployeeDTO employeeDTO);
 }

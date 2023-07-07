@@ -114,6 +114,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         return map;
     }
 
+    /**
+     * 修改员工状态
+     * @param status 修改成
+     * @param id 被修改的员工
+     */
     @Override
     public void editStatus(Integer status, Integer id) {
         //查询员工是否存在
@@ -123,6 +128,32 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         //更新状态
         employee.setStatus(status);
+        employeeMapper.update(employee);
+    }
+
+    /**
+     * 根据id获取员工
+     * @param id
+     * @return
+     */
+    @Override
+    public Employee getById(Integer id) {
+        return employeeMapper.getById(id);
+    }
+
+    /**
+     * 修改员工
+     * @param employeeDTO
+     */
+    @Override
+    public void updateEmployee(EmployeeDTO employeeDTO) {
+        //1.将信息拷贝至Employee
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO,employee);
+
+        //设置修改时间和修改人id
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.update(employee);
     }
 
