@@ -100,4 +100,14 @@ public class EmployeeController {
         Map<String,Object> map = employeeService.queryPage(employeePageQueryDTO);
         return Result.success(map);
     }
+
+    @ApiOperation("修改员工状态")
+    @PostMapping("/status/{status}")
+    public Result modifyStatus(@PathVariable Integer status,Integer id) {
+        log.info("修改员工状态:改为{}改谁{}",status,id);
+        employeeService.editStatus(status,id);
+        return Result.success();
+    }
+
+
 }

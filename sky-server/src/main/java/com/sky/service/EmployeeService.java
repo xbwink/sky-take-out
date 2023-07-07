@@ -24,11 +24,15 @@ public interface EmployeeService {
 
     /**
      * 员工分页查询
-     * @param pageNo
-     * @param pageSize
-     * @param name
+     * @param employeePageQueryDTO
      * @return
      */
     Map<String, Object> queryPage(EmployeePageQueryDTO employeePageQueryDTO);
 
+    /**
+     * 修改员工状态
+     * @param status 修改成
+     * @param id 被修改的员工
+     */
+    void editStatus(Integer status, Integer id);
 }

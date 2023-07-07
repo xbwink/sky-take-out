@@ -114,4 +114,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         return map;
     }
 
+    @Override
+    public void editStatus(Integer status, Integer id) {
+        //查询员工是否存在
+        Employee employee = employeeMapper.getById(id);
+        if(employee==null){
+            throw new AccountNotFoundException("该员工不存在");
+        }
+        //更新状态
+        employee.setStatus(status);
+        employeeMapper.update(employee);
+    }
+
 }
