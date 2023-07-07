@@ -6,6 +6,7 @@ import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
+import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
@@ -18,6 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -84,6 +88,30 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setCreateUser(BaseContext.getCurrentId());
         employee.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.insert(employee);
+    }
+
+    /**
+     * 员工分页查询
+     * @param dto
+     * @return
+     */
+    @Override
+    public Map<String, Object> queryPage(EmployeePageQueryDTO dto) {
+        //1、计算limit查询条件(pageNo-1)*pageSize
+        int pageNo = (dto.getPage()-1)*dto.getPageSize();
+        dto.setPage(pageNo);
+
+        //2、构建一个分页查询dto
+        List<Employee> list = employeeMapper.queryByPage(dto);
+        //查询总记录数
+        Integer count = employeeMapper.count(dto.getName());
+
+        //3、构建返回结果对象
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("total",count);
+        map.put("records",list);
+
+        return map;
     }
 
 }

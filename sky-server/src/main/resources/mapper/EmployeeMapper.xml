@@ -4,5 +4,24 @@
 <mapper namespace="com.sky.mapper.EmployeeMapper">
 
 
+    <!-- 分页查询员工   -->
+    <select id="queryByPage"  resultType="com.sky.entity.Employee">
+        select * from employee
+        <where>
+            <if test="name != null and name != ''">
+            name like concat('%',#{name},'%')
+            </if>
+        </where>
+        order by create_time desc
+        limit #{page},#{pageSize}
+    </select>
 
+    <!-- 查询总条数   -->
+    <select id="count" resultType="java.lang.Integer">
+        select count(id) from employee
+        <where>
+            <if test="name != null and name != '' "></if>
+            name like concat('%',#{name},'%')
+        </where>
+    </select>
 </mapper>
