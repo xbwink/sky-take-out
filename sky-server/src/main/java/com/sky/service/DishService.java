@@ -1,5 +1,7 @@
 package com.sky.service;
 
+import com.sky.dto.DishPageQueryDTO;
+import com.sky.result.PageResult;
 import com.sky.vo.DishVO;
 
 /**
@@ -16,4 +18,12 @@ public interface DishService {
      * @param dishVO
      */
     void addDishWithFlavor(DishVO dishVO);
+
+    /**
+     * 分页查询菜品
+     * @param dto
+     * @return
+     */
+    PageResult pageQuery(DishPageQueryDTO dto);
+
 }
