@@ -3,6 +3,7 @@ package com.sky.mapper;
 import com.github.pagehelper.Page;
 import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.entity.Category;
+import com.sky.vo.DishVO;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -57,4 +58,12 @@ public interface CategoryMapper {
     @Select("select * from category where id = #{id}")
     Category getById(Long id);
 
+    /**
+     * 根据categoryId查询菜品
+     *
+     * @param categoryId
+     * @return
+     */
+    @Select("select * from dish where category_id = #{categoryId}")
+    List<DishVO> getByCategoryId(Long categoryId);
 }

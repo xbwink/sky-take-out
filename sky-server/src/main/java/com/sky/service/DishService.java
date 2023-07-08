@@ -5,6 +5,8 @@ import com.sky.dto.DishPageQueryDTO;
 import com.sky.result.PageResult;
 import com.sky.vo.DishVO;
 
+import java.util.List;
+
 /**
  * @author xb
  * @description 菜品相关服务
@@ -45,4 +47,19 @@ public interface DishService {
      * @param dto
      */
     void update(DishDTO dto);
+
+    /**
+     * 菜品启售停售
+     * @param status
+     * @param id
+     */
+    void editStatus(Integer status, Long id);
+
+    /**
+     * 根据菜categoryId查询菜品
+     *
+     * @param categoryId
+     * @return
+     */
+    List<DishVO> getByCategoryId(Long categoryId);
 }

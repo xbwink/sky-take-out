@@ -8,6 +8,7 @@ import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.entity.SetmealDish;
+import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.CategoryMapper;
 import com.sky.mapper.DishFlavorMapper;
@@ -46,7 +47,7 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 新增菜品
-     * @param dishVO
+     * @param dto
      */
     @Transactional
     @Override
@@ -162,6 +163,34 @@ public class DishServiceImpl implements DishService {
             //向口味表插入n条数据
             dishFlavorMapper.insertBatch(dto.getFlavors());
         }
+    }
+
+    /**
+     * 菜品启售停售
+     * @param status
+     * @param id
+     */
+    @Override
+    public void editStatus(Integer status, Long id) {
+        //查询菜品是否存在
+        Dish dish = dishMapper.getById(id);
+        if(dish==null){
+            throw new AccountNotFoundException("该菜品不存在");
+        }
+        //更新状态
+        dish.setStatus(status);
+        dishMapper.update(dish);
+    }
+
+    /**
+     * 根据categoryId查询菜品
+     *
+     * @param categoryId
+     * @return
+     */
+    @Override
+    public List<DishVO> getByCategoryId(Long categoryId) {
+        return categoryMapper.getByCategoryId(categoryId);
     }
 
 }
