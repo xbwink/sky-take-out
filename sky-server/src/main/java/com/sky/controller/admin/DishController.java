@@ -41,4 +41,13 @@ public class DishController {
         return Result.success(pageResult);
     }
 
+    @ApiOperation("批量删除菜品")
+    @DeleteMapping
+    public Result page(Long[] ids){
+        log.info("批量删除菜品：{}",ids);
+        dishService.deleteBatch(ids);
+        return Result.success();
+    }
+
+
 }

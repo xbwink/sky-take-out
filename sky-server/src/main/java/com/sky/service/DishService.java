@@ -26,4 +26,9 @@ public interface DishService {
      */
     PageResult pageQuery(DishPageQueryDTO dto);
 
+    /**
+     * 根据id批量删除数据
+     * @param ids
+     */
+    void deleteBatch(Long[] ids);
 }
