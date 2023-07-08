@@ -3,6 +3,7 @@ package com.sky.service.impl;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
+import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
@@ -47,12 +48,13 @@ public class DishServiceImpl implements DishService {
      * 新增菜品
      * @param dishVO
      */
+    @Transactional
     @Override
-    public void addDishWithFlavor(DishVO dishVO) {
+    public void addDishWithFlavor(DishDTO dto) {
 
         //1、将数据拷贝至dish
         Dish dish = new Dish();
-        BeanUtils.copyProperties(dishVO, dish);
+        BeanUtils.copyProperties(dto, dish);
 
         //2、向dish表插入数据
         dishMapper.insert(dish);
@@ -62,7 +64,7 @@ public class DishServiceImpl implements DishService {
 
         //3、向菜品口味表插入数据
         //取出菜品口味列表
-        List<DishFlavor> flavors = dishVO.getFlavors();
+        List<DishFlavor> flavors = dto.getFlavors();
         if (flavors != null && flavors.size() > 0) {
             flavors.forEach(dishFlavor -> {
                 dishFlavor.setDishId(dishId);
@@ -115,6 +117,51 @@ public class DishServiceImpl implements DishService {
         //执行批量删除
         dishMapper.deleteBatch(ids);
 
+    }
+
+    /**
+     * 根据id查询菜品信息
+     * @param id
+     * @return
+     */
+    @Override
+    public DishVO getById(Long id) {
+        //1、构建返回结果对象
+        DishVO dishVO = new DishVO();
+        //2、查询数据并拷贝
+        Dish dish = dishMapper.getById(id);
+        BeanUtils.copyProperties(dish,dishVO);
+        //3、查询对应的口味数据
+        List<DishFlavor> flavors = dishFlavorMapper.getByDishId(id);
+        dishVO.setFlavors(flavors);
+        return dishVO;
+    }
+
+    /**
+     * 修改菜品信息
+     * @param dto
+     */
+    @Transactional
+    @Override
+    public void update(DishDTO dto) {
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dto,dish);
+
+        //1、修改dish表数据
+        dishMapper.update(dish);
+
+        //2、为前端传过来的口味设置dishId
+        List<DishFlavor> flavors = dto.getFlavors();
+        flavors.forEach(dishFlavor -> {
+            dishFlavor.setDishId(dto.getId());
+        });
+
+        //3、直接删除菜品的口味信息重新插入
+        dishFlavorMapper.deleteBatchByDishId(dto.getId());
+        if(!dto.getFlavors().isEmpty()){
+            //向口味表插入n条数据
+            dishFlavorMapper.insertBatch(dto.getFlavors());
+        }
     }
 
 }
