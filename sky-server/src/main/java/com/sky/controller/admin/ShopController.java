@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author xb
  * @description 店铺操作相关接口
@@ -35,7 +37,7 @@ public class ShopController {
     @PutMapping("/{status}")
     public Result getStatus(@PathVariable Integer status){
         log.info("设置店铺的营业状态为：{}",status == 1 ? "营业中":"打烊");
-        redisTemplate.opsForValue().set("shop_status",status);
+        redisTemplate.opsForValue().set("shop_status",status,10, TimeUnit.HOURS);
         return Result.success();
     }
 
