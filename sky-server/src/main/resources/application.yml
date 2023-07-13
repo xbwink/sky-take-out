@@ -55,5 +55,5 @@ sky:
     bucket-name: ${sky.alioss.bucket-name}
 
   wechat:
-    appid: wx6d3073c25d266a2a
-    secret: 446a6d94a732d72443d48185cf6aefca
+    appid: 123
+    secret: 321
