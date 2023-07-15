@@ -50,4 +50,13 @@
         where id = #{id}
     </update>
 
+    <select id="pageQuery" resultType="com.sky.vo.OrderVO">
+        select * from orders
+        <where>
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="status != null">and status = #{status}</if>
+        </where>
+        order by order_time desc
+    </select>
+
 </mapper>

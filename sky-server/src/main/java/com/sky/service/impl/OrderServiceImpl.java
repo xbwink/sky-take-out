@@ -1,8 +1,11 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -10,10 +13,12 @@ import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
         orders.setPayStatus(Orders.UN_PAID);//订单支付状态  默认未支付
         orders.setConsignee(addressBook.getConsignee());//收货人
         orders.setPhone(addressBook.getPhone());//收货人手机号
+        orders.setAddress(addressBook.getDetail());//详细收获地址
         ordersMapper.insert(orders);
 
         //3、向order——detail表插入一条或多条数据
@@ -97,6 +103,61 @@ public class OrderServiceImpl implements OrderService {
                 .orderNumber(orders.getNumber())
                 .orderTime(orders.getOrderTime()).build();
         return submitVO;
+    }
+
+    @Override
+    public PageResult pageQueryHistoryOrders(OrdersPageQueryDTO dto) {
+        //1、分页查询当前用户的所有订单信息
+        dto.setUserId(BaseContext.getCurrentId());
+        PageHelper.startPage(dto.getPage(),dto.getPageSize());
+        //下一条sql语句会自动拼接limit
+        Page<OrderVO> orderVOPage= ordersMapper.pageQuery(dto);
+
+        //2、遍历查询每一份订单的详细信息并赋值
+        for (OrderVO orderVO : orderVOPage.getResult()) {
+            List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(orderVO.getId());
+            orderVO.setOrderDetailList(orderDetails);
+        }
+
+        //3、构造返回结果对象
+        return new PageResult(orderVOPage.getTotal(),orderVOPage.getResult());
+    }
+
+    @Override
+    public OrderVO queryOrderDetail(Long orderId) {
+        //1、根据id查询订单
+        OrderVO orderVO = ordersMapper.getById(orderId);
+
+        //2、根据id查询订单详细数据
+        List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(orderId);
+        orderVO.setOrderDetailList(orderDetails);
+
+        //3、构造返回结果对象
+        return orderVO;
+    }
+
+    @Override
+    public void cancelOrder(Long orderId) {
+        ordersMapper.cancelOrder(orderId);
+    }
+
+
+    @Override
+    public void repetition(Long orderId) {
+        //将该订单的所有餐品信息加入至购物车
+        //1、查询出该订单的所有餐品信息
+        List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(orderId);
+
+        //2、将餐品信息添加至购物车
+        orderDetails.forEach(orderDetail -> {
+            //拷贝属性
+            ShoppingCart cart = new ShoppingCart();
+            BeanUtils.copyProperties(orderDetail,cart);
+            cart.setUserId(BaseContext.getCurrentId());
+            cart.setCreateTime(LocalDateTime.now());
+            shoppingCartMapper.insert(cart);
+        });
+
     }
 
     /**
@@ -148,5 +209,7 @@ public class OrderServiceImpl implements OrderService {
 
         ordersMapper.update(orders);
     }
+
+
 
 }
