@@ -57,4 +57,25 @@ public interface OrdersMapper {
      */
     @Update("update orders set status = 6 where id = #{orderId}")
     void cancelOrder(Long orderId);
+
+    /**
+     * 查询状态为待接单的总订单数
+     * @return
+     */
+    @Select("select count(id) from orders where status = 2")
+    Integer getToBeConfirmed();
+
+    /**
+     * 查询状态为待派送的总订单数
+     * @return
+     */
+    @Select("select count(id) from orders where status = 3")
+    Integer getConfirmed();
+
+    /**
+     * 查询状态为派送中的总订单数
+     * @return
+     */
+    @Select("select count(id) from orders where status = 4")
+    Integer getDeliveryInProgress();
 }

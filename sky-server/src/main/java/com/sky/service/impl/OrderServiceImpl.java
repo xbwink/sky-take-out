@@ -5,9 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
@@ -15,8 +13,10 @@ import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.result.PageResult;
 import com.sky.service.OrderService;
+import com.sky.utils.BaiDuMapUtil;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
@@ -50,6 +50,8 @@ public class OrderServiceImpl implements OrderService {
     UserMapper userMapper;
     @Autowired
     WeChatPayUtil weChatPayUtil;
+    @Autowired
+    BaiDuMapUtil baiDuMapUtil;
     @Transactional
     @Override
     public OrderSubmitVO submit(OrdersSubmitDTO dto) {
@@ -66,6 +68,15 @@ public class OrderServiceImpl implements OrderService {
         if(shoppingCarts==null || shoppingCarts.isEmpty()){
             //购物车为空
             throw new ShoppingCartBusinessException(MessageConstant.SHOPPING_CART_IS_NULL);
+        }
+        //用户距离与商家门店距离不能超于5km
+        String userAddress = addressBook.getProvinceName() //省份
+                            +addressBook.getCityName() //市
+                            +addressBook.getDistrictName() //区
+                            +addressBook.getDetail(); //详细地址
+        if(baiDuMapUtil.checkDistance(userAddress)){
+            //超出配送范围
+            throw new AddressBookBusinessException("下单失败，超出配送范围(5公里)");
         }
 
         //2、向orders表插入一条数据
@@ -138,7 +149,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void cancelOrder(Long orderId) {
-        ordersMapper.cancelOrder(orderId);
+        Orders orders = new Orders();
+        orders.setCancelTime(LocalDateTime.now());
+        orders.setCancelReason("用户取消");//暂时硬编码
+        orders.setId(orderId);
+        orders.setStatus(6);
+        ordersMapper.update(orders);
     }
 
 
@@ -158,6 +174,97 @@ public class OrderServiceImpl implements OrderService {
             shoppingCartMapper.insert(cart);
         });
 
+    }
+
+    @Override
+    public PageResult pageQueryOrders(OrdersPageQueryDTO dto) {
+        //1、根据条件动态分页查询订单信息
+        PageHelper.startPage(dto.getPage(),dto.getPageSize());
+        //下一条sql语句会自动拼接limit
+        Page<OrderVO> orderVOPage= ordersMapper.pageQuery(dto);
+
+        //如果订单状态为2、3、4则需要查询其对应的菜品信息
+        if(dto.getStatus()!=null){
+            Integer status = dto.getStatus();
+            if(status == 2 || status == 3 || status == 4){
+                //遍历查询每一份订单菜品名并赋值
+                for (OrderVO orderVO : orderVOPage.getResult()) {
+                    List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(orderVO.getId());
+                    //菜品名格式:宫保鸡丁* 3；红烧带鱼* 2；农家小炒肉* 1；
+                    String orderDishes = new String();
+                    for (OrderDetail orderDetail : orderDetails) {
+                        orderDishes += orderDetail.getName() + "*";
+                        orderDishes += orderDetail.getNumber()+"; ";
+                    }
+                    orderVO.setOrderDishes(orderDishes);
+                }
+            }
+        }
+
+
+        return new PageResult(orderVOPage.getTotal(),orderVOPage.getResult());
+    }
+
+    @Override
+    public OrderStatisticsVO statistics() {
+        //分别查询数据库待接单、待派送、派送中订单的数量
+        Integer toBeConfirmedCount = ordersMapper.getToBeConfirmed();//待接单
+        Integer confirmedCount = ordersMapper.getConfirmed();//待派送
+        Integer deliveryInProgressCount = ordersMapper.getDeliveryInProgress();//派送中
+
+        //构建返回结果对象
+        return new OrderStatisticsVO(toBeConfirmedCount,confirmedCount,deliveryInProgressCount);
+    }
+
+    @Override
+    public void confirm(Long orderId) {
+        //将状态更改为:3已接单
+        Orders orders = Orders.builder().id(orderId).status(3).build();
+        ordersMapper.update(orders);
+    }
+
+    @Override
+    public void rejection(OrdersRejectionDTO dto) {
+        //选择拒单状态流转至已取消:6
+        Orders orders = Orders.builder()
+                .id(dto.getId())
+                .status(6) //设置状态
+                .rejectionReason(dto.getRejectionReason())//设置拒单原因
+                .cancelReason("商家已拒单")//订单取消原因
+                .cancelTime(LocalDateTime.now()).build();//取消时间
+        ordersMapper.update(orders);
+    }
+
+    @Override
+    public void cancel(OrdersCancelDTO dto) {
+        //选择拒单状态流转至已取消:6
+        Orders orders = Orders.builder()
+                .id(dto.getId())
+                .status(6) //设置状态
+                .cancelReason(dto.getCancelReason())//订单取消原因
+                .cancelTime(LocalDateTime.now()).build();//取消时间
+        ordersMapper.update(orders);
+    }
+
+    @Override
+    public void delivery(Long orderId) {
+        //将状态修改为:派送中4
+        Orders orders = Orders.builder()
+                .id(orderId)
+                .status(4) //设置状态
+                .build();
+        ordersMapper.update(orders);
+    }
+
+    @Override
+    public void complete(Long orderId) {
+        //将状态修改为:5已完成
+        Orders orders = Orders.builder()
+                .id(orderId)
+                .status(5) //设置状态
+                .deliveryTime(LocalDateTime.now())//送达时间
+                .build();
+        ordersMapper.update(orders);
     }
 
     /**

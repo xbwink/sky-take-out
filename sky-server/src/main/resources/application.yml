@@ -64,3 +64,11 @@ sky:
     weChatPayCertFilePath: E:\A_software\cploar\a2.pem #平台证书
     notifyUrl: https://www.weixin.qq.com/wxpay/pay.php
     refundNotifyUrl: https://www.weixin.qq.com/wxpay/pay.php
+
+  shop:
+    address: 萍乡市芦溪县南坑镇南坑镇中学
+
+  baidu:
+    ak: sVgGa16278cLcFqEiyByEmvroho2cYXD
+    sk: 5sRwBjPAgFUw0qwrQyOwoWTgx9jb2Ayj
+
