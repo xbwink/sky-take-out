@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -100,4 +101,11 @@ public interface OrdersMapper {
     Double sumByMap(Map map);
 
 
+    /**
+     * 根据条件查询日订单数
+     *
+     * @param map
+     * @return
+     */
+    Integer countByMap(HashMap map);
 }
