@@ -75,4 +75,13 @@ public interface SetmealMapper {
             "from setmeal_dish sd left join dish d on sd.dish_id = d.id " +
             "where sd.setmeal_id = #{setmealId}")
     List<DishItemVO> getDishItemBySetmealId(Long setmealId);
+
+
+    /**
+     * 根据起售状态查询总数
+     * @param status
+     * @return
+     */
+    @Select("select count(id) from setmeal where status = #{status};")
+    Integer getCountByStatus(int status);
 }

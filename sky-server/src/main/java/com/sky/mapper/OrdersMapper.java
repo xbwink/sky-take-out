@@ -85,6 +85,12 @@ public interface OrdersMapper {
     Integer getDeliveryInProgress();
 
     /**
+     * 根据状态和时间查询订单
+     * @return
+     */
+    Integer getCountByMap(HashMap map);
+
+    /**
      * 根据状态和下单时间查询订单
      * @param status
      * @param orderTime

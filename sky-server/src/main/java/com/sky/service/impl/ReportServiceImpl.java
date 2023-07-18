@@ -1,10 +1,11 @@
-package com.sky.service;
+package com.sky.service.impl;
 
 import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
 import com.sky.mapper.OrderDetailMapper;
 import com.sky.mapper.OrdersMapper;
 import com.sky.mapper.UserMapper;
+import com.sky.service.ReportService;
 import com.sky.vo.OrderReportVO;
 import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  * @vesion 1.0
  */
 @Service
-public class ReportServiceImpl implements ReportService{
+public class ReportServiceImpl implements ReportService {
 
     @Autowired
     OrdersMapper ordersMapper;

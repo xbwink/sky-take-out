@@ -16,6 +16,7 @@ import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
+import com.sky.vo.DishOverViewVO;
 import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -217,4 +218,13 @@ public class DishServiceImpl implements DishService {
 
         return dishVOList;
     }
+
+    @Override
+    public DishOverViewVO overviewOrders() {
+        Integer sold = dishMapper.getCountByStatus(1);
+        Integer discontinued = dishMapper.getCountByStatus(0);
+        return DishOverViewVO.builder().sold(sold).discontinued(discontinued).build();
+    }
+
+
 }
