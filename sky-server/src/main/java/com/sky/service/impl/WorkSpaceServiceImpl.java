@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.sky.entity.Orders;
 import com.sky.mapper.OrdersMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.WorkSpaceService;
@@ -43,6 +44,7 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
         //查询今日营业额
         map.put("status",5);
         Double turnover = ordersMapper.sumByMap(map);
+        if(turnover == null) turnover = 0.0;
 
         //查询今日有效订单数
         Integer validOrderCount = ordersMapper.countByMap(map);
@@ -70,6 +72,53 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
                 .newUsers(dayTotal.intValue())
                 .build();
         return vo;
+    }
+
+    @Override
+    public BusinessDataVO getBusinessData(LocalDateTime begin, LocalDateTime end) {
+        /**
+         * 营业额：当日已完成订单的总金额
+         * 有效订单：当日已完成订单的数量
+         * 订单完成率：有效订单数 / 总订单数
+         * 平均客单价：营业额 / 有效订单数
+         * 新增用户：当日新增用户的数量
+         */
+
+        HashMap map = new HashMap();
+        map.put("begin",begin);
+        map.put("end",end);
+
+        //查询总订单数
+        Integer totalOrderCount = ordersMapper.countByMap(map);
+
+        map.put("status", Orders.COMPLETED);
+        //营业额
+        Double turnover = ordersMapper.sumByMap(map);
+        turnover = turnover == null? 0.0 : turnover;
+
+        //有效订单数
+        Integer validOrderCount = ordersMapper.countByMap(map);
+
+        Double unitPrice = 0.0;
+
+        Double orderCompletionRate = 0.0;
+        if(totalOrderCount != 0 && validOrderCount != 0){
+            //订单完成率
+            orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
+            //平均客单价
+            unitPrice = turnover / validOrderCount;
+        }
+
+        //新增用户数
+        Long newUsers = userMapper.userCountByMap(map);
+
+        return BusinessDataVO.builder()
+                .turnover(turnover)
+                .validOrderCount(validOrderCount)
+                .orderCompletionRate(orderCompletionRate)
+                .unitPrice(unitPrice)
+                .newUsers(newUsers.intValue())
+                .build();
     }
 
     @Override
